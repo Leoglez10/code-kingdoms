@@ -4,8 +4,7 @@ import {
   loadSave, writeSave, recordPass, recordFail, setDraft, setAvatar, importLegacy, partStatus,
 } from './game/save.js';
 import { achievementsFor, newlyUnlocked } from './game/achievements.js';
-import PathMap from './components/PathMap.jsx';
-import Pixels, { CASTLE, GEM } from './components/Pixels.jsx';
+import WalkMap from './components/WalkMap.jsx';
 import LevelPanel from './components/LevelPanel.jsx';
 import Wardrobe from './components/Wardrobe.jsx';
 import Achievements from './components/Achievements.jsx';
@@ -13,12 +12,7 @@ import Leo from './components/Leo.jsx';
 
 const storage = (() => { try { return window.localStorage; } catch { return null; } })();
 const initial = loadSave(storage, WORLDS);
-
-const STATUS_COLORS = { done: '#a7f070', locked: '#566c86' };
-const castle = (color, status) =>
-  <Pixels rows={CASTLE} colors={{ k: STATUS_COLORS[status] ?? color, d: '#1a1c2c' }} size={5} />;
-const gem = (color, status) =>
-  <Pixels rows={GEM} colors={{ g: STATUS_COLORS[status] ?? color, w: '#f4f4f4' }} size={5} className={status === 'open' ? 'bob' : ''} />;
+const TOTAL_LEVELS = WORLDS.reduce((n, w) => n + w.levels.length, 0);
 
 export default function App() {
   const [save, setSave] = useState(initial.save);
@@ -45,6 +39,7 @@ export default function App() {
   const world = WORLDS.find(w => w.id === (level?.worldId ?? screen.worldId));
   const go = s => setScreen(s);
   const achievements = achievementsFor(WORLDS, save);
+  const mapProps = { avatar: save.avatar, active: !level };
 
   function onLevelContinue() {
     const { worldId } = level;
@@ -54,86 +49,86 @@ export default function App() {
     if (screen.name === 'part' && partStatus(w, save, screen.part) === 'done') go({ name: 'kingdom', worldId });
   }
 
-  let title, body, back;
+  let title, body, back, help = 'Flechas / WASD para moverte · E, Espacio o Enter para entrar · también puedes hacer clic';
   if (screen.name === 'overworld') {
     title = 'CODE KINGDOMS';
-    const nodes = [
+    const done = WORLDS.reduce((n, w) => n + save.worlds[w.id].completed, 0);
+    const stations = [
       ...WORLDS.map(w => {
-        const done = save.worlds[w.id].completed;
-        return {
-          id: w.id, label: w.name, title: w.name, sub: `${done}/${w.levels.length} · ${w.tagline}`,
-          status: done === w.levels.length ? 'done' : 'open', icon: castle(w.color, done === w.levels.length ? 'done' : 'open'), world: w,
-        };
+        const c = save.worlds[w.id].completed;
+        return { id: w.id, name: `${w.name} (${c}/${w.levels.length})`, color: w.color, status: c === w.levels.length ? 'done' : 'open', world: w };
       }),
-      { id: 'soon', label: 'Próximamente', status: 'locked', lockedText: 'Nuevo reino en construcción', icon: castle('#566c86', 'locked') },
+      { id: 'soon', name: 'Próximamente', color: '#566c86', status: 'locked', lockedText: 'reino en construcción' },
     ];
-    body = <PathMap key="overworld" nodes={nodes} avatar={save.avatar} active={!level}
-      caption="Elige un reino" onEnter={n => go({ name: 'kingdom', worldId: n.world.id })} />;
+    body = <WalkMap key="overworld" {...mapProps} stations={stations} kind="castle" theme="meadow"
+      sign={{ title: 'CODE KINGDOMS', sub: 'elige un reino' }} score={`${done}/${TOTAL_LEVELS}`}
+      onEnter={s => go({ name: 'kingdom', worldId: s.world.id })} />;
   } else if (screen.name === 'kingdom') {
-    title = world.name;
+    title = world.name.toUpperCase();
     back = { name: 'overworld' };
-    const done = save.worlds[world.id].completed === world.levels.length;
-    const nodes = partsOf(world).map(p => {
-      const status = partStatus(world, save, p.index);
-      return {
-        id: p.label, label: p.label, title: `Parte ${p.label}`, part: p,
-        sub: world.levels.slice(p.start, p.end).map(l => l.name).join(' · '),
-        status, lockedText: `Completa la parte ${partsOf(world)[p.index - 1]?.label} primero`,
-        icon: <span className="flag" style={{ '--kingdom': STATUS_COLORS[status] ?? world.color }}>🚩</span>,
-      };
-    });
+    const completed = save.worlds[world.id].completed;
+    const parts = partsOf(world);
+    const stations = parts.map(p => ({
+      id: p.label, mark: p.label, part: p, color: world.color, status: partStatus(world, save, p.index),
+      name: `Parte ${p.label}: ${world.levels[p.start].name}…`,
+      lockedText: `completa la parte ${parts[p.index - 1]?.label}`,
+    }));
     body = (
       <>
-        <PathMap key={`kingdom-${world.id}`} nodes={nodes} avatar={save.avatar} active={!level}
-          theme={world.id} onEnter={n => go({ name: 'part', worldId: world.id, part: n.part.index })} />
-        {done && <div className="screen-card victory" dangerouslySetInnerHTML={{ __html: `<h3>¡Completaste el ${world.name}!</h3>${world.victory}` }} />}
-        <LegacyImport world={world} onImport={raw => setSave(importLegacy(save, world, raw))} />
+        <WalkMap key={`kingdom-${world.id}`} {...mapProps} stations={stations} kind="flag" theme={world.map.theme}
+          sign={{ title: world.map.sign, sub: 'elige una parte' }} score={`${completed}/${world.levels.length}`}
+          onEnter={s => go({ name: 'part', worldId: world.id, part: s.part.index })} />
+        {completed === world.levels.length && (
+          <div className="card victory" dangerouslySetInnerHTML={{ __html: `<h2>¡Completaste el ${world.name}!</h2>${world.victory}` }} />
+        )}
       </>
     );
   } else if (screen.name === 'part') {
     const p = partsOf(world)[screen.part];
-    title = `${world.name} · ${p.label}`;
+    title = `${world.map.sign} ${p.label}`;
     back = { name: 'kingdom', worldId: world.id };
     const completed = save.worlds[world.id].completed;
-    const nodes = world.levels.slice(p.start, p.end).map((lv, k) => {
+    const stations = world.levels.slice(p.start, p.end).map((lv, k) => {
       const i = p.start + k;
-      const status = i < completed ? 'done' : i === completed ? 'open' : 'locked';
       const boss = i === world.levels.length - 1;
       return {
-        id: String(i), label: boss ? '!' : String(i + 1), title: `${i + 1}. ${lv.name}`, index: i, status,
-        lockedText: `Haz primero el nivel ${completed + 1}`, icon: gem(boss ? '#b13e53' : world.color, status),
+        id: String(i), index: i, mark: boss ? '!' : String(i + 1), name: `${i + 1}. ${lv.name}`,
+        color: boss ? '#b13e53' : world.map.station === 'cloud' ? '#f4f4f4' : '#73eff7',
+        status: i < completed ? 'done' : i === completed ? 'open' : 'locked',
+        lockedText: `haz el nivel ${completed + 1}`,
       };
     });
-    body = <PathMap key={`part-${world.id}-${p.index}`} nodes={nodes} avatar={save.avatar} active={!level}
-      theme={world.id} onEnter={n => setLevel({ worldId: world.id, index: n.index })} />;
+    body = <WalkMap key={`part-${world.id}-${p.index}`} {...mapProps} stations={stations} kind={world.map.station}
+      theme={world.map.theme} sign={{ title: `PARTE ${p.label}`, sub: world.map.trail }}
+      score={`${Math.min(Math.max(completed - p.start, 0), p.end - p.start)}/${p.end - p.start}`}
+      onEnter={s => setLevel({ worldId: world.id, index: s.index })} />;
   } else if (screen.name === 'wardrobe') {
-    title = 'El armario de Leo';
+    title = 'EL ARMARIO DE LEO';
     back = { name: 'overworld' };
+    help = 'Elige un estilo para cada parte. Se guarda solo.';
     body = <Wardrobe avatar={save.avatar} onChange={(slot, v) => setSave(s => setAvatar(s, slot, v))} />;
   } else {
-    title = 'Logros';
+    title = 'LOGROS';
     back = { name: 'overworld' };
+    help = 'Los logros se desbloquean solos mientras juegas.';
     body = <Achievements list={achievements} />;
   }
 
-  const unlockedCount = achievements.filter(a => a.unlocked).length;
   return (
-    <div className="app">
-      <header className="topbar">
-        {back ? <button className="secondary" onClick={() => go(back)}>◀ Volver</button> : <span />}
-        <h1>{title}</h1>
-        <nav className="buttons">
-          <button className="secondary icon-btn" onClick={() => go({ name: 'wardrobe' })} aria-label="Personalizar a Leo">
-            <Leo avatar={save.avatar} size={2} />
-          </button>
-          <button className="secondary" onClick={() => go({ name: 'achievements' })}>🏆 {unlockedCount}/{achievements.length}</button>
-        </nav>
-      </header>
+    <>
+      <h1>{title}</h1>
+      {body}
+      <p className="help">{help}</p>
+      <p className="help">Tu progreso se guarda solo en este navegador.</p>
+      <div className="buttons">
+        {back && <button className="secondary" onClick={() => go(back)}>◀ Volver</button>}
+        <button className="secondary leo-btn" onClick={() => go({ name: 'wardrobe' })}><Leo avatar={save.avatar} size={2} /> Leo</button>
+        <button className="secondary" onClick={() => go({ name: 'achievements' })}>🏆 Logros {achievements.filter(a => a.unlocked).length}/{achievements.length}</button>
+        {screen.name === 'kingdom' && <LegacyImport world={world} onImport={raw => setSave(importLegacy(save, world, raw))} />}
+      </div>
       {!storageOk && (
         <p className="warn">⚠ Este navegador no permite guardar (¿ventana privada o almacenamiento bloqueado?). Tu progreso se perderá al cerrar.</p>
       )}
-      <main>{body}</main>
-      <p className="help">Flechas / WASD para moverte · Enter, Espacio o E para entrar · también puedes hacer clic</p>
       {level && (
         <LevelPanel key={`${level.worldId}-${level.index}`} world={world} index={level.index} save={save}
           onRun={pass => setSave(s => pass ? recordPass(s, level.worldId, level.index) : recordFail(s, level.worldId, level.index))}
@@ -143,28 +138,28 @@ export default function App() {
       <div className="toasts" aria-live="polite">
         {toasts.map((a, i) => <div key={a.id + i} className="toast">{a.icon} <b>¡Logro!</b> {a.title}</div>)}
       </div>
-    </div>
+    </>
   );
 }
 
+// Loads a progress file exported by the old standalone Java Quest / Cloud Quest.
 function LegacyImport({ world, onImport }) {
-  const [msg, setMsg] = useState('');
+  const input = useRef(null);
   async function pick(e) {
     const file = e.target.files?.[0];
     e.target.value = '';
     if (!file) return;
     try {
       onImport(JSON.parse(await file.text()));
-      setMsg('Progreso importado.');
+      alert(`Progreso importado al ${world.name}.`);
     } catch (err) {
-      setMsg(err instanceof SyntaxError ? 'Ese archivo no es JSON válido.' : err.message);
+      alert(err instanceof SyntaxError ? 'Ese archivo no es JSON válido.' : err.message);
     }
   }
   return (
-    <p className="help">
-      ¿Ya jugaste la versión anterior?{' '}
-      <label className="link">Importa tu progreso exportado<input type="file" accept="application/json,.json" hidden onChange={pick} /></label>
-      {' '}al {world.name}. {msg && <b>{msg}</b>}
-    </p>
+    <>
+      <button className="secondary" onClick={() => input.current.click()}>⬆ Importar progreso anterior</button>
+      <input ref={input} type="file" accept="application/json,.json" hidden onChange={pick} />
+    </>
   );
 }

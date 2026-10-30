@@ -9,6 +9,7 @@ export default {
   idleOutput: 'La salida de la terminal aparecerá aquí. Todo es simulado: nada llega a AWS.',
   levels: LEVELS,
   partSizes: [4, 3, 3],
+  map: { theme: 'cloud', station: 'cloud', sign: 'CLOUD QUEST', trail: 'sigue el cable' },
   async run(level, src) {
     const r = play(level, src);
     if (r.pass) return { pass: true, out: r.out, error: null };

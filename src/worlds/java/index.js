@@ -33,6 +33,7 @@ export default {
   idleOutput: 'La salida de tu programa aparecerá aquí.',
   levels: LEVELS,
   partSizes: [4, 3, 3],
+  map: { theme: 'java', station: 'crystal', sign: 'JAVA QUEST', trail: 'sigue el camino' },
   run: (level, src) => runJava(level, src),
   victory: `
     <p>Ya dominas lo básico: variables, tipos, operadores, condicionales, bucles, arrays y métodos. 🎉</p>

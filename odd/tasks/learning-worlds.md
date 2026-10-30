@@ -10,6 +10,7 @@ Branch: `feat/learning-worlds` · Delivery: ask-on-risk · Test runner: `bun run
 - S5: Progress saved in localStorage.
 - S6: Achievements: "La parte de los logros me gusta, por ejemplo yo que ya terminé este..."
 - S7: Character customization: "hay un personaje que se llama Leo, poder cambiarle como tres estilos de ropa, ¿no? Tres de ropa, tres de pelo, tres de pantalón, tres de zapatos".
+- S9: "quiero que copies el estilo de los otros html, ese movimiento y diseño y todo quiero que lo coipies,el que esta no me gusta" → canvas 320x192 maps with free WASD movement, original tiles, stations, sign and HUD.
 - S8: Original art and names only (genre inspired by world-map platformers; no Nintendo assets/names).
 
 ## Tasks
@@ -17,6 +18,7 @@ Branch: `feat/learning-worlds` · Delivery: ask-on-risk · Test runner: `bun run
 |----|-------|-------|--------|--------|
 | T1 | S1, S4 | inline | done (RED: missing modules → GREEN 25/25) | 29dc522 + worker fix |
 | T2 | S5, S6 | inline | done | ca95609 |
+| T4 | S9 | inline | done (layout test RED→GREEN, browser check Java/Cloud maps) | see git log |
 | T3 | S2, S3, S7, S8 | inline | done (avatar test RED→GREEN, browser smoke) | see git log |
 
 T1 scaffold + engines ported as world modules with tests. T2 save model + achievements with tests. T3 UI: overworld, world/part maps, level panel, wardrobe, achievements screen.
@@ -29,3 +31,4 @@ Routes inline: no Writer trigger reason (units depend on each other).
 - L4: "que corra con bun, se me olvido decirte" → bun install / bun run; package-lock replaced by bun.lock.
 - L5: Browser smoke found Java runner always timing out in the production build: Vite minifies `execute`, the worker called the old name. Fixed by binding it as `var execute = (...)` in `workerSource`, pinned by a test. Verified in browser: level 1 passes, save persists, achievement toast shows, infinite loop times out, wardrobe works. 29/29 tests.
 - Next: deploy to static host; optional Supabase saves.
+- L6 (2026-10-29): "a ver pero quiero que copies el estilo de los otros html, ese movimiento y diseño y todo quiero que lo coipies,el que esta no me gusta" → replaced node PathMap with canvas WalkMap reusing the original drawing code; page CSS copied from the originals.

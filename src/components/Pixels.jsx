@@ -9,18 +9,3 @@ export default function Pixels({ rows, colors, size = 4, className, title }) {
     </svg>
   );
 }
-
-export const CASTLE = [
-  'k.k.k..k.k.k',
-  'kkkkk..kkkkk',
-  'kdkdk..kdkdk',
-  'kkkkkkkkkkkk',
-  'kkkkkkkkkkkk',
-  'kkdkkkkkkdkk',
-  'kkkkkkkkkkkk',
-  'kkkkkddkkkkk',
-  'kkkkddddkkkk',
-  'kkkkddddkkkk',
-];
-
-export const GEM = ['..gg..', '.gggg.', '.wggg.', 'gggggg', 'gggggg', 'gggggg', '.gggg.', '.gggg.', '..gg..'];

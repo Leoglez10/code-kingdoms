@@ -1,7 +1,7 @@
 export default function Achievements({ list }) {
   const got = list.filter(a => a.unlocked).length;
   return (
-    <section className="screen-card">
+    <section className="card">
       <p className="muted">{got} de {list.length} desbloqueados</p>
       <ul className="achievements">
         {list.map(a => (

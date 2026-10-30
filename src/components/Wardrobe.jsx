@@ -6,7 +6,7 @@ const SLOT_NAMES = { hair: 'Pelo', shirt: 'Ropa', pants: 'Pantalón', shoes: 'Za
 
 export default function Wardrobe({ avatar, onChange }) {
   return (
-    <section className="screen-card wardrobe">
+    <section className="card wardrobe">
       <div className="wardrobe-preview"><Leo avatar={avatar} size={12} /></div>
       <div className="wardrobe-slots">
         {AVATAR_SLOTS.map(slot => (
