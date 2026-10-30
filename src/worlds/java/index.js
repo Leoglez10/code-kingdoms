@@ -1,4 +1,6 @@
 import { LEVELS, compileCheck, transpile, execute, grade } from './engine.js';
+import TOOLS from './levels-tools.js';
+import OBJECTS from './levels-objects.js';
 
 // Binds the function to a fixed name: the bundler minifies `execute` to something else.
 export const workerSource = fn => `var execute = (${fn.toString()});\nonmessage = e => postMessage(execute(e.data));`;
@@ -31,16 +33,21 @@ export default {
   color: '#f0a040',
   fileLabel: 'Main.java',
   idleOutput: 'La salida de tu programa aparecerá aquí.',
-  levels: LEVELS,
-  partSizes: [4, 3, 3],
+  levels: [...LEVELS, ...TOOLS, ...OBJECTS],
+  partSizes: [4, 3, 3, 4, 3, 3, 4, 3, 3],
+  chapters: [
+    { name: 'Fundamentos', parts: 3 },
+    { name: 'Herramientas', parts: 3 },
+    { name: 'Objetos', parts: 3 },
+  ],
   map: { theme: 'java', station: 'crystal', sign: 'JAVA QUEST', trail: 'sigue el camino' },
   run: (level, src) => runJava(level, src),
   victory: `
-    <p>Ya dominas lo básico: variables, tipos, operadores, condicionales, bucles, arrays y métodos. 🎉</p>
+    <p>Ya dominas los fundamentos, las herramientas del día a día y la programación orientada a objetos. 🎉</p>
     <p><b>Siguiente paso:</b> escribir Java "de verdad" en tu computadora:</p>
     <pre>1. Instala el JDK (por ejemplo Temurin 21)
 2. Guarda tu código en Main.java
 3. javac Main.java   # compila
 4. java Main         # ejecuta</pre>
-    <p>Después toca aprender <b>clases y objetos</b>, el corazón de Java.</p>`,
+    <p>Después toca aprender <b>colecciones</b> (<code>ArrayList</code>, <code>HashMap</code>), <b>interfaces</b> y <b>excepciones</b>.</p>`,
 };

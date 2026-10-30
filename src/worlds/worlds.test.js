@@ -8,17 +8,25 @@ const java = WORLDS.find(w => w.id === 'java');
 const runLocal = (level, src) => runJava(level, src, async code => execute(code));
 
 describe('world registry', () => {
-  it('registers Java and Cloud with 10 levels split 4/3/3', () => {
+  it('registers Java and Cloud', () => {
     expect(WORLDS.map(w => w.id)).toEqual(['java', 'cloud']);
-    for (const w of WORLDS) {
-      expect(w.levels).toHaveLength(10);
-      expect(partsOf(w).map(p => [p.start, p.end])).toEqual([[0, 4], [4, 7], [7, 10]]);
-    }
   });
 
-  it('labels parts by kingdom number like 1-1, 2-3', () => {
-    expect(partsOf(WORLDS[0]).map(p => p.label)).toEqual(['1-1', '1-2', '1-3']);
-    expect(partsOf(WORLDS[1])[2].label).toBe('2-3');
+  it('gives Java three worlds of 10 levels, each split 4/3/3', () => {
+    expect(java.levels).toHaveLength(30);
+    expect(java.chapters.map(c => c.name)).toEqual(['Fundamentos', 'Herramientas', 'Objetos']);
+    expect(partsOf(java).map(p => p.label)).toEqual(['1-1', '1-2', '1-3', '2-1', '2-2', '2-3', '3-1', '3-2', '3-3']);
+    expect(partsOf(java).map(p => p.end)).toEqual([4, 7, 10, 14, 17, 20, 24, 27, 30]);
+  });
+
+  it('keeps Cloud as one world labelled 1-1..1-3', () => {
+    expect(cloud.levels).toHaveLength(10);
+    expect(partsOf(cloud).map(p => p.label)).toEqual(['1-1', '1-2', '1-3']);
+  });
+
+  it('keeps the original Java Quest levels first and in order', () => {
+    expect(java.levels[0].name).toBe('La Señal');
+    expect(java.levels[9].name).toBe('JEFE FINAL: El Dragón Par');
   });
 });
 
