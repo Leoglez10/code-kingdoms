@@ -14,6 +14,10 @@ describe('Java engine: World 2 features', () => {
     expect(run(main('        int a = 7;\n        int b = 2;\n        System.out.println(a / b);\n        System.out.println(-7 / 2);'))).toEqual(['3', '-3']);
   });
 
+  it('truncates int division left to right in * / % chains', () => {
+    expect(run(main('        int a = 3;\n        int b = 5;\n        int c = 2;\n        System.out.println(a * b / c);\n        System.out.println(20 / b / c);\n        System.out.println(a + b / c);'))).toEqual(['7', '2', '5']);
+  });
+
   it('runs switch with case and default lines', () => {
     const src = main('        int x = 2;\n        switch (x) {\n            case 1:\n                System.out.println("uno");\n                break;\n            case 2:\n                System.out.println("dos");\n                break;\n            default:\n                System.out.println("otro");\n        }');
     expect(run(src)).toEqual(['dos']);
@@ -77,6 +81,10 @@ describe('Java engine: World 3 classes', () => {
     ].join('\n');
     const body = '        Animal[] zoo = { new Gato(), new Animal("Rex") };\n        for (Animal a : zoo) {\n            System.out.println(a);\n        }';
     expect(run(prog(cls, body))).toEqual(['Michi hace Miau', 'Rex hace ...']);
+  });
+
+  it('supports array initializers in class fields', () => {
+    expect(run(prog('class Bolsa {\n    int[] notas = {1, 2, 3};\n}', '        Bolsa b = new Bolsa();\n        System.out.println(b.notas.length);'))).toEqual(['3']);
   });
 
   it('calls super() implicitly in subclass constructors', () => {

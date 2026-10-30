@@ -282,10 +282,18 @@ function convertStatements(s, intNames) {
     .replace(/\.length\(\)/g, '.length')
     .replace(/\.contains\s*\(/g, '.includes(')
     .replace(/System\.out\.println\s*\(/g, '__println(').replace(/System\.out\.print\s*\(/g, '__print(')
-    // int / int truncates in Java. ponytail: only plain names or literals, `(a + b) / 2` stays a float.
-    .replace(/((?:\w+\.)*\w+)\s*\/\s*((?:\w+\.)*\w+)/g, (m, a, b) => {
+    // int / int truncates in Java. Folds each * / % chain left to right, like Java evaluates it.
+    // ponytail: only plain names or literals, `(a + b) / 2` and `x /= y` stay floats.
+    .replace(/(?:\w+\.)*\w+(?:\s*[*/%]\s*(?:\w+\.)*\w+)+/g, chain => {
+      if (!chain.includes('/')) return chain;
+      const [first, ...rest] = chain.split(/\s*([*/%])\s*/);
+      const operands = [first, ...rest.filter((_, i) => i % 2)];
       const isInt = t => /^\d+$/.test(t) || intNames.has(t.split('.').pop());
-      return isInt(a) && isInt(b) ? `Math.trunc(${a} / ${b})` : m;
+      if (!operands.every(isInt)) return chain;
+      let acc = first;
+      for (let i = 0; i < rest.length; i += 2)
+        acc = rest[i] === '/' ? `Math.trunc(${acc} / ${rest[i + 1]})` : `${acc} ${rest[i]} ${rest[i + 1]}`;
+      return acc;
     }));
 }
 
@@ -325,6 +333,8 @@ function parseMembers(cls) {
       start = i + 1;
     } else if (m[i] === '{') {
       const close = matchBrace(m, i);
+      // `= {` opens a field's array initializer, not a method body.
+      if (/=\s*$/.test(m.slice(start, i))) { i = close; continue; }
       const header = strip(body.slice(start, i));
       const ctor = /^(\w+)\s*\(([^)]*)\)$/.exec(header);
       const meth = /^[\w<>[\],\s]+?\s+(\w+)\s*\(([^)]*)\)$/.exec(header);
@@ -354,7 +364,8 @@ function transpile(src) {
   const classCode = ordered.map(c => {
     const fields = new Set(lineage(c).flatMap(k => k.fields.map(f => f.name)));
     const methods = new Set(lineage(c).flatMap(k => k.methods.filter(x => !x.ctor).map(x => x.name)));
-    const fieldCode = c.fields.map(f => `  ${f.name} = ${f.init ? convertStatements(f.init, intNames) : DEFAULTS[f.type] ?? 'null'};`);
+    // The leading `=` lets convertStatements spot `= { ... }` array initializers.
+    const fieldCode = c.fields.map(f => `  ${f.name} ${f.init ? convertStatements(`= ${f.init}`, intNames) : `= ${DEFAULTS[f.type] ?? 'null'}`};`);
     const methodCode = c.methods.map(mt => {
       let body = convertStatements(mt.body, intNames);
       const locals = new Set([...mt.params, ...[...body.matchAll(/\blet\s+(\w+)/g)].map(x => x[1])]);
