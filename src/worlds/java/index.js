@@ -1,16 +1,17 @@
 import { LEVELS, compileCheck, transpile, execute, grade } from './engine.js';
 
+// Binds the function to a fixed name: the bundler minifies `execute` to something else.
+export const workerSource = fn => `var execute = (${fn.toString()});\nonmessage = e => postMessage(execute(e.data));`;
+
 // Runs the transpiled program in a Worker so infinite loops can be killed.
 function runInWorker(code) {
-  const url = URL.createObjectURL(new Blob(
-    [`${execute.toString()}\nonmessage = e => postMessage(execute(e.data));`],
-    { type: 'text/javascript' },
-  ));
+  const url = URL.createObjectURL(new Blob([workerSource(execute)], { type: 'text/javascript' }));
   return new Promise(resolve => {
     const w = new Worker(url);
     const done = res => { clearTimeout(timer); w.terminate(); URL.revokeObjectURL(url); resolve(res); };
     const timer = setTimeout(() => done({ ok: false, out: [], error: 'TIMEOUT' }), 1500);
     w.onmessage = e => done(e.data);
+    w.onerror = e => { e.preventDefault(); done({ ok: false, out: [], error: e.message || 'Error interno del ejecutor' }); };
     w.postMessage(code);
   });
 }

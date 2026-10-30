@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { WORLDS, partsOf } from './index.js';
-import { runJava } from './java/index.js';
+import { runJava, workerSource } from './java/index.js';
 import { execute } from './java/engine.js';
 import cloud from './cloud/index.js';
 
@@ -28,6 +28,16 @@ describe('Java kingdom', () => {
       expect((await runLocal(lv, lv.solution)).pass, lv.name).toBe(true);
       expect((await runLocal(lv, lv.starter)).pass, lv.name).toBe(false);
     }
+  });
+
+  it('builds a worker script that still works when the bundler renames execute', () => {
+    // Simulates minification: same body, different function name.
+    const renamed = new Function(`return ${execute.toString().replace(/^function execute/, 'function x0')}`)();
+    let reply;
+    const scope = { postMessage: r => { reply = r; } };
+    new Function('postMessage', `${workerSource(renamed)}\nthis.onmessage = onmessage;`).call(scope, scope.postMessage);
+    scope.onmessage({ data: '__println("hi");' });
+    expect(reply).toEqual({ ok: true, out: ['hi'] });
   });
 
   it('reports simulated compile errors with the file and line', async () => {
