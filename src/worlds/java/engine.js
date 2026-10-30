@@ -219,8 +219,10 @@ function compileCheck(src) {
     if (/\bint\s+\w+\s*=\s*""/.test(t)) return fail(n, 'incompatible types: String cannot be converted to int. Un `int` guarda números, no texto entre comillas.');
     if (/\bString\s+\w+\s*=\s*-?\d/.test(t)) return fail(n, 'incompatible types: int cannot be converted to String. El texto va entre comillas dobles.');
     if (/'[^'\\]{2,}'/.test(t)) return fail(n, 'Las comillas simples son para UN carácter (char). Para texto usa comillas dobles "...".');
-    const isBlockLine = /^(if|else|for|while|do|switch|public|private|static|class)\b/.test(t) || t.startsWith('}');
-    if (!/[;{}]$/.test(t) && !isBlockLine) return fail(n, "';' expected — cada instrucción termina con punto y coma.");
+    const isBlockLine = /^(if|else|for|while|do|switch|case|default|public|private|protected|static|class|abstract)\b/.test(t)
+      || t.startsWith('}') || t.startsWith('@');
+    // Lines ending in ',' continue a multi-line array initializer.
+    if (!/[;{},]$/.test(t) && !isBlockLine) return fail(n, "';' expected — cada instrucción termina con punto y coma.");
     for (const c of t) depth += c === '{' ? 1 : c === '}' ? -1 : 0;
     if (depth < 0) return fail(n, 'Sobra una llave `}`.');
   }
@@ -230,26 +232,155 @@ function compileCheck(src) {
   return null;
 }
 
-// ponytail: regex Java->JS for the beginner subset taught here; int division (7/2) gives 3.5, swap in a real interpreter if levels go beyond this
+// ---------- Java -> JavaScript translation ----------
+// ponytail: regex-based translator for the subset these levels teach (no generics, interfaces,
+// nested classes or static fields); swap in a real Java interpreter if levels go beyond it.
+
+const LITERAL = /("(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*')/;
+
+// Applies fn only to code outside string and char literals.
+const outsideStrings = (s, fn) => s.split(LITERAL).map((part, i) => (i % 2 ? part : fn(part))).join('');
+
+// Same length as s, with literal contents blanked, so braces inside strings never count.
+const mask = s => s.replace(new RegExp(LITERAL.source, 'g'), m => m[0] + ' '.repeat(m.length - 2) + m[0]);
+
+function matchBrace(masked, open) {
+  let depth = 0;
+  for (let i = open; i < masked.length; i++) {
+    if (masked[i] === '{') depth++;
+    else if (masked[i] === '}' && --depth === 0) return i;
+  }
+  return masked.length - 1;
+}
+
+// `= {1, {2, 3}}` array initializers become `= [1, [2, 3]]`.
+function convertInitializers(s) {
+  const m = mask(s);
+  const out = [...s];
+  const re = /=\s*\{/g;
+  let x;
+  while ((x = re.exec(m))) {
+    const open = x.index + x[0].length - 1;
+    const close = matchBrace(m, open);
+    for (let i = open; i <= close; i++) if (m[i] === '{') out[i] = '['; else if (m[i] === '}') out[i] = ']';
+    re.lastIndex = close + 1;
+  }
+  return out.join('');
+}
+
+const TYPE = '(?:final\\s+)?(?:int|double|float|long|short|byte|char|boolean|String|var|[A-Z]\\w*)(?:\\s*\\[\\s*\\])*';
+const paramNames = params => params.split(',').map(p => p.trim().split(/\s+/).pop()).filter(Boolean);
+
+// Statement-level translation shared by main, static methods and instance methods.
+function convertStatements(s, intNames) {
+  s = convertInitializers(s);
+  return outsideStrings(s, code => code
+    .replace(/new\s+\w+\s*\[\s*(\w+)\s*\]\s*\[\s*(\w+)\s*\]/g, 'Array.from({ length: $1 }, () => new Array($2).fill(0))')
+    .replace(/new\s+\w+\s*\[\s*(\w+)\s*\]/g, 'new Array($1).fill(0)')
+    .replace(new RegExp(`\\b${TYPE}\\s+(\\w+)\\s*(=|;|:)`, 'g'), 'let $1 $2')
+    .replace(/for\s*\(\s*let\s+(\w+)\s*:/g, 'for (let $1 of')
+    .replace(/\.length\(\)/g, '.length')
+    .replace(/\.contains\s*\(/g, '.includes(')
+    .replace(/System\.out\.println\s*\(/g, '__println(').replace(/System\.out\.print\s*\(/g, '__print(')
+    // int / int truncates in Java. ponytail: only plain names or literals, `(a + b) / 2` stays a float.
+    .replace(/((?:\w+\.)*\w+)\s*\/\s*((?:\w+\.)*\w+)/g, (m, a, b) => {
+      const isInt = t => /^\d+$/.test(t) || intNames.has(t.split('.').pop());
+      return isInt(a) && isInt(b) ? `Math.trunc(${a} / ${b})` : m;
+    }));
+}
+
+// Inside instance methods Java lets you write `vida` for `this.vida`; JavaScript does not.
+function addThis(body, locals, fields, methods) {
+  return outsideStrings(body, code => code
+    .replace(/(?<![.\w$])([A-Za-z_]\w*)(\s*\()/g, (m, n, p) => (methods.has(n) && !locals.has(n) ? `this.${n}${p}` : m))
+    .replace(/(?<![.\w$])([A-Za-z_]\w*)\b(?!\s*\()/g, (m, n) => (fields.has(n) && !locals.has(n) ? `this.${n}` : m)));
+}
+
+const DEFAULTS = { int: '0', long: '0', short: '0', byte: '0', double: '0', float: '0', boolean: 'false' };
+
+function splitClasses(src) {
+  const m = mask(src);
+  const re = /(?:(?:public|abstract|final)\s+)*class\s+(\w+)(?:\s+extends\s+(\w+))?\s*\{/g;
+  const out = [];
+  let x;
+  while ((x = re.exec(m))) {
+    const open = x.index + x[0].length - 1;
+    const close = matchBrace(m, open);
+    out.push({ name: x[1], parent: x[2] ?? null, body: src.slice(open + 1, close) });
+    re.lastIndex = close + 1;
+  }
+  return out;
+}
+
+// Splits a class body into fields (`type name = init;`) and methods/constructors (`header { body }`).
+function parseMembers(cls) {
+  const { body } = cls, m = mask(body);
+  const fields = [], methods = [];
+  let start = 0;
+  const strip = h => h.replace(/\b(public|private|protected|static|final|abstract)\b/g, '').trim();
+  for (let i = 0; i < m.length; i++) {
+    if (m[i] === ';') {
+      const f = /^([\w<>[\]\s]+?)\s+(\w+)\s*(?:=\s*([^]*))?$/.exec(strip(body.slice(start, i)));
+      if (f) fields.push({ type: f[1].trim(), name: f[2], init: f[3] });
+      start = i + 1;
+    } else if (m[i] === '{') {
+      const close = matchBrace(m, i);
+      const header = strip(body.slice(start, i));
+      const ctor = /^(\w+)\s*\(([^)]*)\)$/.exec(header);
+      const meth = /^[\w<>[\],\s]+?\s+(\w+)\s*\(([^)]*)\)$/.exec(header);
+      if (ctor && ctor[1] === cls.name) methods.push({ ctor: true, name: 'constructor', params: paramNames(ctor[2]), body: body.slice(i + 1, close) });
+      else if (meth) methods.push({ name: meth[1], params: paramNames(meth[2]), body: body.slice(i + 1, close) });
+      i = close;
+      start = i + 1;
+    }
+  }
+  return { ...cls, fields, methods };
+}
+
 function transpile(src) {
-  let s = src.replace(/\/\/.*$/gm, '');
-  s = s.replace(/public\s+class\s+\w+\s*\{/, '');
-  const last = s.lastIndexOf('}');
-  s = s.slice(0, last) + s.slice(last + 1);
-  s = s.replace(/public\s+static\s+void\s+main\s*\([^)]*\)/, 'function main()');
-  s = s.replace(/(?:(?:public|private)\s+)?static\s+[\w[\]]+\s+(\w+)\s*\(([^)]*)\)/g, (m, name, params) =>
-    `function ${name}(${params.split(',').map(p => p.trim().split(/\s+/).pop()).filter(Boolean).join(', ')})`);
-  s = s.replace(/=\s*\{([^{}]*)\}/g, '= [$1]');
-  s = s.replace(/new\s+\w+\s*\[\s*(\w+)\s*\]/g, 'new Array($1).fill(0)');
-  s = s.replace(/\b(?:final\s+)?(?:int|double|float|long|short|byte|char|boolean|String|var)(?:\s*\[\s*\])?\s+(\w+)\s*(=|;|:)/g, 'let $1 $2');
-  s = s.replace(/for\s*\(\s*let\s+(\w+)\s*:/g, 'for (let $1 of');
-  s = s.replace(/\.length\(\)/g, '.length');
-  s = s.replace(/System\.out\.println\s*\(/g, '__println(').replace(/System\.out\.print\s*\(/g, '__print(');
-  return '"use strict";\n' + s + '\nmain();';
+  const s = src.replace(/\/\/.*$/gm, '').replace(/@\w+/g, '');
+  const intNames = new Set([...s.matchAll(/\b(?:int|long|short|byte)(?:\s*\[\s*\])*\s+(\w+)/g)].map(x => x[1]));
+  const classes = splitClasses(s).map(parseMembers);
+  const mainClass = classes.find(c => /static\s+void\s+main\s*\(/.test(c.body));
+  const others = classes.filter(c => c !== mainClass);
+  const byName = new Map(others.map(c => [c.name, c]));
+  const lineage = c => (c ? [c, ...lineage(byName.get(c.parent))] : []);
+
+  // Parents must be defined before their subclasses.
+  const ordered = [];
+  const visit = c => { if (!c || ordered.includes(c)) return; visit(byName.get(c.parent)); ordered.push(c); };
+  others.forEach(visit);
+
+  const classCode = ordered.map(c => {
+    const fields = new Set(lineage(c).flatMap(k => k.fields.map(f => f.name)));
+    const methods = new Set(lineage(c).flatMap(k => k.methods.filter(x => !x.ctor).map(x => x.name)));
+    const fieldCode = c.fields.map(f => `  ${f.name} = ${f.init ? convertStatements(f.init, intNames) : DEFAULTS[f.type] ?? 'null'};`);
+    const methodCode = c.methods.map(mt => {
+      let body = convertStatements(mt.body, intNames);
+      const locals = new Set([...mt.params, ...[...body.matchAll(/\blet\s+(\w+)/g)].map(x => x[1])]);
+      body = addThis(body, locals, fields, methods);
+      // Java inserts super() for you; JavaScript requires it before using `this`.
+      if (mt.ctor && c.parent && !/\bsuper\s*\(/.test(body)) body = ' super();' + body;
+      return `  ${mt.name}(${mt.params.join(', ')}) {${body}}`;
+    });
+    return `class ${c.name}${c.parent ? ` extends ${c.parent}` : ''} {\n${[...fieldCode, ...methodCode].join('\n')}\n}`;
+  });
+
+  let main = mainClass ? mainClass.body : '';
+  main = main.replace(/public\s+static\s+void\s+main\s*\([^)]*\)/, 'function main()');
+  main = main.replace(/(?:(?:public|private)\s+)?static\s+[\w[\]]+\s+(\w+)\s*\(([^)]*)\)/g,
+    (m, name, params) => `function ${name}(${paramNames(params).join(', ')})`);
+  main = convertStatements(main, intNames);
+  return `"use strict";\n${classCode.join('\n')}\n${main}\nmain();`;
 }
 
 function execute(code) {
-  if (!String.prototype.equals) String.prototype.equals = function (o) { return this.valueOf() === o; };
+  const helpers = {
+    equals(o) { return this.valueOf() === String(o); },
+    equalsIgnoreCase(o) { return this.toLowerCase() === String(o).toLowerCase(); },
+    isEmpty() { return this.length === 0; },
+  };
+  for (const [k, fn] of Object.entries(helpers)) if (!String.prototype[k]) String.prototype[k] = fn;
   const out = [];
   let line = '';
   const __print = x => { line += String(x); };
@@ -266,8 +397,10 @@ function execute(code) {
 
 function friendlyError(msg) {
   const undef = msg.match(/(\w+) is not defined/);
-  if (undef) return `error: cannot find symbol\n  símbolo: ${undef[1]}\n→ ¿Declaraste esa variable o método? ¿Lo escribiste igual (mayúsculas incluidas)?`;
+  if (undef) return `error: cannot find symbol\n  símbolo: ${undef[1]}\n→ ¿Declaraste esa variable, método o clase? ¿Lo escribiste igual (mayúsculas incluidas)?`;
   if (/already been declared/.test(msg)) return 'error: variable already defined\n→ Declaraste dos veces la misma variable. Para cambiarla, no repitas el tipo.';
+  if (/Cannot read properties of (null|undefined)/.test(msg)) return 'Exception: NullPointerException\n→ Usaste un objeto que todavía no existe. ¿Le hiciste `new`?';
+  if (/is not a function/.test(msg)) return 'error: cannot find symbol (método)\n→ Ese método no existe en el objeto. Revisa el nombre y la clase.';
   if (/^SyntaxError/.test(msg)) return 'error de sintaxis\n→ Revisa paréntesis ( ), llaves { } y comillas.';
   if (msg === 'TIMEOUT') return 'Tu programa nunca terminó (¿bucle infinito?)\n→ Revisa que la condición del bucle llegue a ser falsa.';
   return msg;
@@ -283,4 +416,4 @@ function grade(level, src, res) {
   return { pass: true };
 }
 
-export { LEVELS, compileCheck, transpile, execute, grade };
+export { LEVELS, tpl, compileCheck, transpile, execute, grade };
