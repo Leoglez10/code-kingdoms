@@ -108,7 +108,9 @@ export default function WalkMap({ stations, kind, theme = 'meadow', sign, score,
       const k = e.key.toLowerCase();
       keys[k] = true;
       if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' '].includes(k)) e.preventDefault();
-      if (['e', ' ', 'enter'].includes(k)) interact(near);
+      // A focused button already handles Enter/Space; entering a station too would act twice.
+      const onControl = e.target.closest?.('button, input, textarea, select, a');
+      if (['e', ' ', 'enter'].includes(k) && !(onControl && k !== 'e')) interact(near);
     };
     const onKeyUp = e => { keys[e.key.toLowerCase()] = false; };
     const onClick = e => {
