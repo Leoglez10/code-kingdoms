@@ -21,9 +21,9 @@ Un juego 2D en pixel art para aprender lenguajes de programación y la nube. Emp
 ## Cómo empezar
 
 ```bash
-npm install
-npm run dev     # abre la URL que muestra Vite
-npm test        # corre los tests de los motores y de la lógica del juego
+bun install
+bun run dev     # abre la URL que muestra Vite
+bun run test    # corre los tests de los motores y de la lógica del juego
 ```
 
 ## Tecnología
@@ -33,7 +33,8 @@ npm test        # corre los tests de los motores y de la lógica del juego
 | Interfaz | React + Vite, como app estática de una sola página (sin servidor) |
 | Guardado | `localStorage` detrás de un único módulo de guardado, para moverlo a un backend después |
 | Hosting | Cualquier hosting estático (Cloudflare Pages, Vercel, Netlify) |
-| Tests | Vitest |
+| Runtime | Bun (instalación y scripts) |
+| Tests | Vitest, con `bun run test` |
 
 ## Agregar un reino nuevo
 
@@ -41,9 +42,9 @@ Cada reino es un módulo que trae sus niveles, cómo se dividen en partes y un m
 
 ## Hoja de ruta
 
-- [ ] Mapa principal, reinos y partes
-- [ ] Reinos de Java y Cloud migrados
-- [ ] Logros
-- [ ] Personalización del personaje
+- [x] Mapa principal, reinos y partes
+- [x] Reinos de Java y Cloud migrados
+- [x] Logros
+- [x] Personalización del personaje
 - [ ] Publicar en un hosting estático
 - [ ] Cuentas opcionales y guardado en la nube para jugar con amigos

@@ -21,9 +21,9 @@ A 2D pixel-art game for learning programming languages and the cloud. Start on a
 ## Quick path
 
 ```bash
-npm install
-npm run dev     # open the URL Vite prints
-npm test        # run the engine and game-logic tests
+bun install
+bun run dev     # open the URL Vite prints
+bun run test    # run the engine and game-logic tests
 ```
 
 ## Stack
@@ -33,7 +33,8 @@ npm test        # run the engine and game-logic tests
 | UI | React + Vite, as a static single-page app (no server) |
 | Saving | `localStorage` behind a single save module, so it can move to a backend later |
 | Hosting | Any static host (Cloudflare Pages, Vercel, Netlify) |
-| Tests | Vitest |
+| Runtime | Bun (install and scripts) |
+| Tests | Vitest, run with `bun run test` |
 
 ## Adding a new kingdom
 
@@ -41,9 +42,9 @@ Each kingdom is one module that provides its levels, how they split into parts, 
 
 ## Roadmap
 
-- [ ] Overworld, kingdoms and parts
-- [ ] Java and Cloud kingdoms migrated
-- [ ] Achievements
-- [ ] Character customization
+- [x] Overworld, kingdoms and parts
+- [x] Java and Cloud kingdoms migrated
+- [x] Achievements
+- [x] Character customization
 - [ ] Deploy to a static host
 - [ ] Optional accounts and cloud saves to play with friends
