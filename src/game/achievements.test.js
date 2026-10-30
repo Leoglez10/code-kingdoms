@@ -49,6 +49,17 @@ describe('achievements', () => {
     expect(unlocked(setAvatar(emptySave(WORLDS), 'shoes', 1))).toEqual(['stylist']);
   });
 
+  it('adds one achievement per world when a kingdom has several worlds', () => {
+    const multi = [{ id: 'java', name: 'Java', levels: Array(6).fill({}), partSizes: [3, 3], chapters: [{ name: 'Uno', parts: 1 }, { name: 'Dos', parts: 1 }] }];
+    let s = emptySave(multi);
+    for (let i = 0; i < 3; i++) s = recordPass(s, 'java', i);
+    const got = achievementsFor(multi, s);
+    expect(got.find(a => a.id === 'java-world-1')).toMatchObject({ unlocked: true, title: 'Mundo 1: Uno' });
+    expect(got.find(a => a.id === 'java-world-2').unlocked).toBe(false);
+    expect(got.find(a => a.id === 'java-part-2').title).toBe('Parte 2-1');
+    expect(achievementsFor(WORLDS, emptySave(WORLDS)).some(a => a.id.includes('-world-'))).toBe(false);
+  });
+
   it('reports only achievements newly unlocked between two saves', () => {
     const before = passAll(emptySave(WORLDS), 'java', 3);
     const after = recordPass(before, 'java', 3);

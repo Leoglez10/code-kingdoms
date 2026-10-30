@@ -1,6 +1,6 @@
 # Code Kingdoms
 
-A 2D pixel-art game for learning programming languages and the cloud. Start on an overworld of castles, pick a kingdom (Java, Cloud…), and work through it part by part (1-1, 1-2, 1-3) by solving short coding challenges.
+A 2D pixel-art game for learning programming languages and the cloud. Start on an overworld of castles, pick a kingdom (Java, Cloud…), then a world, and work through it part by part (1-1, 1-2, 1-3) by solving short coding challenges.
 
 > 🇪🇸 [Leer en español](README.es.md)
 
@@ -11,8 +11,8 @@ A 2D pixel-art game for learning programming languages and the cloud. Start on a
 | Feature | Description |
 |---------|-------------|
 | Overworld | A map of castles, one per kingdom. Locked castles show what's coming next. |
-| Kingdoms in parts | Each kingdom is split into Part 1, 2 and 3. Clear a part to unlock the next. |
-| Java kingdom | Write real Java (variables, loops, arrays, methods) and see the output in a console. |
+| Worlds and parts | Each kingdom has worlds (1, 2, 3…) and each world is split into parts (1-1, 1-2, 1-3). Clear one to unlock the next. |
+| Java kingdom | 3 worlds, 30 levels: **Fundamentos** (variables, loops, arrays, methods), **Herramientas** (Strings, `switch`, `do-while`, 2D arrays) and **Objetos** (classes, constructors, encapsulation, inheritance). |
 | Cloud kingdom | Type simulated AWS CLI commands (S3, IAM, EC2). Nothing reaches AWS and nothing costs money. |
 | Achievements | Unlocked for clearing parts, finishing kingdoms, and more. |
 | Leo, your character | Customize Leo with 3 hair, 3 shirt, 3 pants and 3 shoe styles. |
@@ -38,7 +38,7 @@ bun run test    # run the engine and game-logic tests
 
 ## Adding a new kingdom
 
-Each kingdom is one module that provides its levels, how they split into parts, and an engine that checks the player's answer. Register it and it shows up as a new castle on the overworld, with no other changes needed.
+Each kingdom is one module in `src/worlds/` that provides its levels, how they group into worlds (`chapters`) and parts (`partSizes`), and an engine that checks the player's answer. Register it and it shows up as a new castle on the overworld, with no other changes needed.
 
 ## Roadmap
 
@@ -46,5 +46,7 @@ Each kingdom is one module that provides its levels, how they split into parts, 
 - [x] Java and Cloud kingdoms migrated
 - [x] Achievements
 - [x] Character customization
+- [x] Java with 3 worlds (30 levels)
 - [ ] Deploy to a static host
+- [ ] More worlds for Cloud
 - [ ] Optional accounts and cloud saves to play with friends
