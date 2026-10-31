@@ -2,6 +2,12 @@
 
 Un juego 2D en pixel art para aprender lenguajes de programación y la nube. Empiezas en un mapa de castillos, eliges un reino (Java, Cloud…), luego un mundo, y avanzas parte por parte (1-1, 1-2, 1-3) resolviendo retos cortos de código.
 
+## Capturas
+
+<img src="docs/screenshots/desktop.png" alt="Code Kingdoms — escritorio" width="100%">
+
+<p align="center"><img src="docs/screenshots/mobile.png" alt="Code Kingdoms — móvil" width="260"></p>
+
 > 🇬🇧 [Read in English](README.md)
 
 > **Estado:** en desarrollo. Nace de unir dos juegos anteriores e independientes: Java Quest y Cloud Quest.

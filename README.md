@@ -2,6 +2,12 @@
 
 A 2D pixel-art game for learning programming languages and the cloud. Start on an overworld of castles, pick a kingdom (Java, Cloud…), then a world, and work through it part by part (1-1, 1-2, 1-3) by solving short coding challenges.
 
+## Screenshots
+
+<img src="docs/screenshots/desktop.png" alt="Code Kingdoms — desktop" width="100%">
+
+<p align="center"><img src="docs/screenshots/mobile.png" alt="Code Kingdoms — mobile" width="260"></p>
+
 > 🇪🇸 [Leer en español](README.es.md)
 
 > **Status:** in development. Being built from two earlier standalone games, Java Quest and Cloud Quest.
