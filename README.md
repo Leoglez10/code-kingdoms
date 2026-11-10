@@ -56,3 +56,8 @@ Each kingdom is one module in `src/worlds/` that provides its levels, how they g
 - [ ] Deploy to a static host
 - [ ] More worlds for Cloud
 - [ ] Optional accounts and cloud saves to play with friends
+
+## Built with
+[![Built with Gentle-AI](https://raw.githubusercontent.com/Gentleman-Programming/gentle-ai/main/docs/assets/brand/built-with-gentle-ai.png)](https://github.com/Gentleman-Programming/gentle-ai)
+
+
