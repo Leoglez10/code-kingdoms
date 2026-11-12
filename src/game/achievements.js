@@ -24,7 +24,7 @@ export function achievementsFor(worlds, save) {
   }
   list.push(
     { id: 'flawless', icon: '🎯', title: 'Sin tropiezos', desc: 'Supera 5 niveles al primer intento.', unlocked: save.flawless.length >= 5 },
-    { id: 'stylist', icon: '🎨', title: 'Con estilo', desc: 'Cambia la ropa o el pelo de Leo.', unlocked: Object.values(save.avatar).some(v => v !== 0) },
+    { id: 'stylist', icon: '🎨', title: 'Con estilo', desc: 'Cambia el nombre, la ropa o el pelo de tu personaje.', unlocked: save.name !== 'Leo' || Object.values(save.avatar).some(v => v !== 0) },
     { id: 'polyglot', icon: '🌍', title: 'Políglota', desc: 'Completa todos los reinos.', unlocked: worlds.every(complete) },
   );
   return list;

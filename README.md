@@ -23,7 +23,7 @@ A 2D pixel-art game for learning programming languages and the cloud. Start on a
 | Java kingdom | 3 worlds, 30 levels: **Fundamentos** (variables, loops, arrays, methods), **Herramientas** (Strings, `switch`, `do-while`, 2D arrays) and **Objetos** (classes, constructors, encapsulation, inheritance). |
 | Cloud kingdom | Type simulated AWS CLI commands (S3, IAM, EC2). Nothing reaches AWS and nothing costs money. |
 | Achievements | Unlocked for clearing parts, finishing kingdoms, and more. |
-| Leo, your character | Customize Leo with 3 hair, 3 shirt, 3 pants and 3 shoe styles. |
+| Your character | Give it your name (Leo by default) and pick from 3 hair, 3 shirt, 3 pants and 3 shoe styles. |
 | Saved progress | Everything is saved in your browser (localStorage). |
 
 ## Quick path
