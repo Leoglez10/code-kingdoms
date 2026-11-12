@@ -3,6 +3,8 @@
 export const SAVE_KEY = 'codeKingdoms.save.v1';
 export const AVATAR_SLOTS = ['hair', 'shirt', 'pants', 'shoes'];
 export const STYLES_PER_SLOT = 3;
+export const DEFAULT_NAME = 'Leo';
+export const NAME_LIMIT = 16;
 const DRAFT_LIMIT = 20000;
 
 const emptyWorld = () => ({ completed: 0, drafts: {}, attempts: {} });
@@ -12,6 +14,7 @@ export function emptySave(worlds) {
   return {
     version: 1,
     worlds: Object.fromEntries(worlds.map(w => [w.id, emptyWorld()])),
+    name: DEFAULT_NAME,
     avatar: Object.fromEntries(AVATAR_SLOTS.map(s => [s, 0])),
     flawless: [],
   };
@@ -34,6 +37,7 @@ export function sanitizeSave(raw, worlds) {
   const base = emptySave(worlds);
   if (!isObj(raw)) return base;
   for (const w of worlds) base.worlds[w.id] = sanitizeWorld(raw.worlds?.[w.id], w.levels.length);
+  if (typeof raw.name === 'string') base.name = cleanName(raw.name);
   for (const slot of AVATAR_SLOTS) {
     const v = raw.avatar?.[slot];
     if (Number.isInteger(v) && v >= 0 && v < STYLES_PER_SLOT) base.avatar[slot] = v;
@@ -72,6 +76,10 @@ export const recordFail = (save, id, i) =>
 
 export const setDraft = (save, id, i, code) =>
   updateWorld(save, id, w => ({ ...w, drafts: { ...w.drafts, [i]: code } }));
+
+const cleanName = name => String(name).trim().slice(0, NAME_LIMIT).trim() || DEFAULT_NAME;
+
+export const setName = (save, name) => ({ ...save, name: cleanName(name) });
 
 export function setAvatar(save, slot, value) {
   if (!AVATAR_SLOTS.includes(slot) || !Number.isInteger(value) || value < 0 || value >= STYLES_PER_SLOT) return save;

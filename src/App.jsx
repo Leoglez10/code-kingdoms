@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { WORLDS, partsOf, chaptersOf } from './worlds/index.js';
 import { chapterStatus } from './game/parts.js';
 import {
-  loadSave, writeSave, recordPass, recordFail, setDraft, setAvatar, importLegacy, partStatus,
+  loadSave, writeSave, recordPass, recordFail, setDraft, setAvatar, setName, importLegacy, partStatus,
 } from './game/save.js';
 import { achievementsFor, newlyUnlocked } from './game/achievements.js';
 import WalkMap from './components/WalkMap.jsx';
@@ -127,10 +127,10 @@ export default function App() {
       score={`${Math.min(Math.max(completed - p.start, 0), p.end - p.start)}/${p.end - p.start}`}
       onEnter={s => setLevel({ worldId: world.id, index: s.index })} />;
   } else if (screen.name === 'wardrobe') {
-    title = 'EL ARMARIO DE LEO';
+    title = 'PERSONALIZA TU PERSONAJE';
     back = { name: 'overworld' };
-    help = 'Elige un estilo para cada parte. Se guarda solo.';
-    body = <Wardrobe avatar={save.avatar} onChange={(slot, v) => setSave(s => setAvatar(s, slot, v))} />;
+    help = 'Ponle tu nombre y elige un estilo para cada parte. Se guarda solo.';
+    body = <Wardrobe avatar={save.avatar} name={save.name} onName={n => setSave(s => setName(s, n))} onChange={(slot, v) => setSave(s => setAvatar(s, slot, v))} />;
   } else {
     title = 'LOGROS';
     back = { name: 'overworld' };
@@ -146,7 +146,7 @@ export default function App() {
       <p className="help">Tu progreso se guarda solo en este navegador.</p>
       <div className="buttons">
         {back && <button className="secondary" onClick={() => go(back)}>◀ Volver</button>}
-        <button className="secondary leo-btn" onClick={() => go({ name: 'wardrobe' })}><Leo avatar={save.avatar} size={2} /> Leo</button>
+        <button className="secondary leo-btn" onClick={() => go({ name: 'wardrobe' })}><Leo avatar={save.avatar} size={2} /> {save.name}</button>
         <button className="secondary" onClick={() => go({ name: 'achievements' })}>🏆 Logros {achievements.filter(a => a.unlocked).length}/{achievements.length}</button>
         {['kingdom', 'chapter'].includes(screen.name) && <LegacyImport world={world} onImport={raw => setSave(importLegacy(save, world, raw))} />}
       </div>

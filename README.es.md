@@ -23,7 +23,7 @@ Un juego 2D en pixel art para aprender lenguajes de programación y la nube. Emp
 | Reino de Java | 3 mundos y 30 niveles: **Fundamentos** (variables, bucles, arrays, métodos), **Herramientas** (Strings, `switch`, `do-while`, arrays 2D) y **Objetos** (clases, constructores, encapsulación, herencia). |
 | Reino de Cloud | Escribe comandos simulados de la AWS CLI (S3, IAM, EC2). Nada llega a AWS y nada cuesta dinero. |
 | Logros | Se desbloquean al completar partes, terminar reinos y más. |
-| Leo, tu personaje | Personaliza a Leo con 3 estilos de pelo, 3 de camisa, 3 de pantalón y 3 de zapatos. |
+| Tu personaje | Ponle tu nombre (Leo por defecto) y elige entre 3 estilos de pelo, 3 de camisa, 3 de pantalón y 3 de zapatos. |
 | Progreso guardado | Todo se guarda en tu navegador (localStorage). |
 
 ## Cómo empezar

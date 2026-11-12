@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   SAVE_KEY, emptySave, sanitizeSave, loadSave, writeSave,
-  recordPass, recordFail, setDraft, setAvatar, importLegacy, partStatus,
+  recordPass, recordFail, setDraft, setAvatar, setName, importLegacy, partStatus,
 } from './save.js';
 
 const WORLDS = [
@@ -76,6 +76,17 @@ describe('progress', () => {
     expect([0, 1, 2].map(p => partStatus(WORLDS[0], s, p))).toEqual(['open', 'locked', 'locked']);
     for (let i = 0; i < 4; i++) s = recordPass(s, 'java', i);
     expect([0, 1, 2].map(p => partStatus(WORLDS[0], s, p))).toEqual(['done', 'open', 'locked']);
+  });
+
+  it('names the character Leo by default and keeps a trimmed name up to 16 characters', () => {
+    expect(emptySave(WORLDS).name).toBe('Leo');
+    const s = setName(emptySave(WORLDS), '  Ana  ');
+    expect(s.name).toBe('Ana');
+    expect(setName(s, 'x'.repeat(20)).name).toBe('x'.repeat(16));
+    expect(setName(s, '   ').name).toBe('Leo');
+    expect(sanitizeSave({ name: 'Max' }, WORLDS).name).toBe('Max');
+    expect(sanitizeSave({ name: 42 }, WORLDS).name).toBe('Leo');
+    expect(sanitizeSave({ name: '' }, WORLDS).name).toBe('Leo');
   });
 
   it('changes one avatar slot within 0..2', () => {

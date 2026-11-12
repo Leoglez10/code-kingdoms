@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { achievementsFor, newlyUnlocked } from './achievements.js';
-import { emptySave, recordPass, recordFail, setAvatar } from './save.js';
+import { emptySave, recordPass, recordFail, setAvatar, setName } from './save.js';
 
 const WORLDS = [
   { id: 'java', name: 'Java', levels: Array(10).fill({}), partSizes: [4, 3, 3] },
@@ -47,6 +47,7 @@ describe('achievements', () => {
 
   it('unlocks stylist when Leo changes style', () => {
     expect(unlocked(setAvatar(emptySave(WORLDS), 'shoes', 1))).toEqual(['stylist']);
+    expect(unlocked(setName(emptySave(WORLDS), 'Ana'))).toEqual(['stylist']);
   });
 
   it('adds one achievement per world when a kingdom has several worlds', () => {
