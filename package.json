@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "build:site": "vite build --base ./ --outDir _site/play --emptyOutDir && rsync -a --exclude .taste-skill landing/ _site/"
   },
   "dependencies": {
     "react": "^19.3.1",

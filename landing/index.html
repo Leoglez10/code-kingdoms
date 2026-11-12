@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="es" data-type="software" data-radius="soft" data-ground="sky" data-buttons="pill" data-motion>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Code Kingdoms: juego pixel art para aprender Java y AWS</title>
+<meta name="description" content="Un juego gratis en el navegador: caminas por un mapa de castillos y resuelves 40 retos cortos de Java y de la línea de comandos de AWS.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Code Kingdoms: juego pixel art para aprender Java y AWS">
+<meta property="og:description" content="40 retos cortos de Java y AWS CLI en un mapa pixel art. Gratis y en el navegador.">
+<meta property="og:image" content="img/hero-overworld.webp">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#0a0d14">
+<meta name="site-kind" content="gaming">
+<meta name="page-type" content="software">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mona+Sans:wdth,wght@75..125,400..600&family=Geist+Mono:wght@400..500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/system.css">
+<link rel="stylesheet" href="assets/ui/cards.css">
+<link rel="stylesheet" href="assets/motion/motion.css">
+<link rel="stylesheet" href="assets/backgrounds/backgrounds.css">
+<link rel="stylesheet" href="assets/layout/layout.css">
+<link rel="stylesheet" href="assets/icons/icon.css">
+<style>
+:root {
+  --p-bg: #0a0d14; --p-surface: #131824; --p-ink: #e9edf3; --p-muted: #8891a1;
+  --p-accent: #5ab9fc; --p-accent-ink: #0a0d14; --p-action: #5ab9fc; --p-action-ink: #0a0d14;
+  --p-inv-bg: #e9edf3; --p-inv-surface: #d7dbe1; --p-inv-ink: #0a0d14; --p-inv-muted: #54575f;
+  --p-inv-accent: #0a0d14; --p-inv-accent-ink: #e9edf3; --p-inv-action: #0a0d14; --p-inv-action-ink: #e9edf3;
+  --font-display: "Mona Sans", system-ui, sans-serif;
+  --font-text: "Mona Sans", system-ui, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --display-weight: 500;
+  --display-tracking: -0.03em;
+  --display-tracking-xl: -0.04em;
+  --display-stretch: 104%;
+  --ly-scale: 0.96;
+}
+</style>
+<link rel="stylesheet" href="assets/ui/base.css">
+<script>document.documentElement.classList.add('m-enter');setTimeout(()=>document.documentElement.classList.add('m-enter-done'),700)</script>
+<script src="assets/backgrounds/backgrounds.js"></script>
+<script>document.documentElement.classList.add('mo-js');setTimeout(()=>document.documentElement.classList.add('mo-safe'),2500)</script>
+<link rel="modulepreload" href="assets/moments/moments.js">
+<link rel="modulepreload" href="assets/moments/lib.js">
+<link rel="modulepreload" href="assets/moments/iris-opens/moment.js">
+<!-- page CSS: inside visuals only -->
+<style>
+  /* the game is pixel art: keep its pixels square at every scale */
+  .frame__img, .hero__bg, .menu-card img { image-rendering: pixelated; }
+  .menu-card .panel { --p-h: 200px; }
+  #reinos .panel { --p-h: 500px; }
+  #reinos .panel .frame__img { object-fit: cover; object-position: 50% 0; }
+  #pasos .panel { --p-h: 260px; }
+  /* keep Leo's preview, on the image's left edge, inside the crop */
+  #leo .frame__img { object-position: 0 50%; }
+  @media (max-width: 1023px) { #mapa .frame { --ratio: 60%; } }
+  @media (max-width: 639px) { #reinos .panel { --p-h: 300px; } #pasos .panel { --p-h: 140px; } }
+  /* one look for the main action: the statement footer keeps the page's action colour on this dark page */
+  .footer--statement { --action: var(--p-action); --action-ink: var(--p-action-ink); }
+</style>
+</head>
+<body>
+<!-- type: software (site-kind gaming)
+     deal: hero photo (the game's own overworld capture as key art), nav nav-cards, close close-type,
+     footer footer-statement, rhythm space, buttons pill, mark dots, grounds: lit ground sky on the footer
+     palette blue-black-cornflower (a night-blue ground like the game's own UI, a sky-blue accent like its Cloud castle),
+     type mona (sora took 4 lines on the hero at 1440)
+     moments: iris-opens on #leo -->
+
+<header class="nav">
+  <div class="wrap nav__bar">
+    <a class="skip-link" href="#top">Saltar al contenido</a>
+    <a class="nav__logo" href="#top"><span class="mark" data-mark="dots" aria-hidden="true"></span>Code Kingdoms</a>
+    <nav class="nav__links" aria-label="Principal">
+      <div class="nav__item">
+        <a class="nav__link" href="#reinos">Reinos <svg class="chev" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        <div class="nav__menu">
+          <div class="wrap grid">
+            <a class="menu-card span-4" href="#reinos">
+              <div class="panel"><img class="frame__img" src="img/java-path.webp" alt="Camino del Reino de Java con banderas de cada parte" loading="lazy"></div>
+              <span class="t-card">Reino de Java</span>
+              <span class="t-small muted">30 niveles, de variables a herencia</span>
+            </a>
+            <a class="menu-card span-4" href="#reinos">
+              <div class="panel"><img class="frame__img" src="img/cloud-parts.webp" alt="Mapa azul del Reino de la Nube con nubes pixeladas" loading="lazy"></div>
+              <span class="t-card">Reino de la Nube</span>
+              <span class="t-small muted">10 niveles de AWS CLI simulada</span>
+            </a>
+            <a class="menu-card span-4" href="#pasos">
+              <div class="panel"><img class="frame__img" src="img/achievements.webp" alt="Tablero con los 21 logros del juego" loading="lazy"></div>
+              <span class="t-card">Logros</span>
+              <span class="t-small muted">21 logros que se ganan jugando</span>
+            </a>
+          </div>
+        </div>
+      </div>
+      <div class="nav__item"><a class="nav__link" href="#mapa">El mapa</a></div>
+      <div class="nav__item"><a class="nav__link" href="#pasos">Cómo se juega</a></div>
+      <div class="nav__item"><a class="nav__link" href="#leo">Leo</a></div>
+    </nav>
+    <div class="nav__actions">
+      <a class="btn btn--primary" href="play/">Jugar gratis</a>
+    </div>
+    <button class="nav__toggle" type="button" aria-expanded="false" aria-label="Menú">
+      <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M2 5h14M2 13h14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+</header>
+
+<main id="top">
+  <!-- CLIENT FILE key-art: img/hero-overworld.webp (the overworld, captured from the game at 2x) -->
+  <section class="hero hero--photo" data-enter data-calm="left" aria-labelledby="hero-h">
+    <img class="hero__bg" src="img/hero-overworld.webp" alt="Mapa pixel art con un camino de tierra, el castillo naranja de Java y el castillo azul de la Nube" style="--ly-pos: 70% 50%; --ly-pos-phone: 60% 40%" fetchpriority="high">
+    <div class="wrap"><div class="hero-text">
+      <div class="hero__text">
+        <h1 id="hero-h">Code Kingdoms, juego pixel art</h1>
+        <p class="hero__lead">Camina por un mapa de castillos y resuelve 40 retos cortos de Java y AWS CLI. Gratis, en el navegador.</p>
+        <div class="btn-row"><a class="btn btn--primary" href="play/">Jugar gratis<svg class="m-arrow" viewBox="0 0 12 12" aria-hidden="true"><path class="m-arrow__stem" d="M1 6h8"/><path class="m-arrow__head" d="M4.5 2.5 8 6l-3.5 3.5"/></svg></a><a class="btn btn--secondary" href="#reinos">Ver los reinos</a></div>
+      </div>
+      <dl class="hero__facts">
+        <div><dt>Niveles</dt><dd>40 en 2 reinos</dd></div>
+        <div><dt>Precio</dt><dd>Gratis, sin cuenta</dd></div>
+        <div><dt>Progreso</dt><dd>Guardado en tu navegador</dd></div>
+        <div><dt>Controles</dt><dd>Flechas, WASD o clic</dd></div>
+      </dl>
+    </div></div>
+  </section>
+
+  <section class="section" id="mapa" aria-labelledby="mapa-h">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="mapa-h">Un mapa de castillos. <span class="muted">Cada castillo es un lenguaje.</span></h2>
+        <p>Dentro de cada reino hay mundos, y cada mundo se divide en partes. Terminas una parte y se abre la siguiente.</p>
+      </div>
+      <figure class="frame frame--photo fit-screen">
+        <img class="frame__img" src="img/java-worlds.webp" alt="Mapa del Reino de Java con el cartel Mundo 1, Fundamentos" loading="lazy">
+      </figure>
+    </div>
+  </section>
+
+  <section class="section" id="reinos" aria-labelledby="reinos-h">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="reinos-h">Los reinos de Java y la Nube</h2>
+      </div>
+      <div class="grid">
+        <article class="card card--row card--open span-6">
+          <h3>Escribe Java de verdad</h3>
+          <p>30 niveles en 3 mundos: fundamentos, herramientas como Strings y switch, y objetos con clases y herencia.</p>
+          <div class="panel"><img class="frame__img" src="img/java-level.webp" alt="Nivel 1 de Java: un editor con public class Main y el reto de imprimir Hola, Mundo" loading="lazy"></div>
+        </article>
+        <article class="card card--row card--open span-6">
+          <h3>Practica comandos de AWS</h3>
+          <p>10 niveles de S3, IAM y EC2 en una terminal simulada. Nada llega a AWS y nada cuesta dinero.</p>
+          <div class="panel"><img class="frame__img" src="img/cloud-level.webp" alt="Nivel 1 de la Nube: una terminal con el reto aws sts get-caller-identity" loading="lazy"></div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="pasos" aria-labelledby="pasos-h">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="pasos-h">Cómo se juega en 3 pasos</h2>
+      </div>
+      <div class="grid">
+        <article class="card card--row card--open span-4">
+          <span class="step-num">1</span>
+          <h3>Camina hasta un nivel</h3>
+          <p>Mueve a Leo por el camino y pulsa E en la bandera.</p>
+          <div class="panel"><img class="frame__img" src="img/java-path.webp" alt="Leo junto a la bandera de la parte 1-1 en el camino de Java" loading="lazy"></div>
+        </article>
+        <article class="card card--row card--open span-4">
+          <span class="step-num">2</span>
+          <h3>Resuelve el reto de código</h3>
+          <p>Lee la pista, escribe tu respuesta y pulsa Ejecutar.</p>
+          <div class="panel"><img class="frame__img" src="img/cloud-parts.webp" alt="Partes 1-1, 1-2 y 1-3 del Reino de la Nube" loading="lazy"></div>
+        </article>
+        <article class="card card--row card--open span-4">
+          <span class="step-num">3</span>
+          <h3>Gana los 21 logros</h3>
+          <p>De tu primer nivel a terminar todos los reinos.</p>
+          <div class="panel"><img class="frame__img" src="img/achievements.webp" alt="Tablero de logros con candados" loading="lazy"></div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section ground-inverse" id="leo" aria-labelledby="leo-h" data-moment="iris-opens" data-moment-opts='{"from": "base"}'>
+    <div class="wrap">
+      <div class="grid">
+        <div class="span-5">
+          <div class="section-head">
+            <h2 id="leo-h">El armario de Leo</h2>
+            <p>Leo es tu personaje. Elige su pelo, su ropa, sus pantalones y sus zapatos, con 3 estilos para cada uno. Se guarda solo.</p>
+          </div>
+          <a class="link" href="play/">Vestir a Leo en el juego</a>
+        </div>
+        <div class="frame frame--split frame--photo span-6 start-7">
+          <img class="frame__img" src="img/wardrobe.webp" alt="Armario de Leo con estilos de pelo, ropa, pantalón y zapatos" loading="lazy">
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer closing footer--statement" id="contact" aria-labelledby="close-h">
+  <div class="wrap">
+    <div class="closing__cta close--type">
+      <div class="section-head">
+        <h2 id="close-h">Empieza por el Reino de Java</h2>
+        <p class="t-small muted">Gratis, sin cuenta y sin instalar nada.</p>
+      </div>
+      <a class="btn btn--primary btn--xl btn--wide" href="play/">Jugar gratis<svg class="m-arrow" viewBox="0 0 12 12" aria-hidden="true"><path class="m-arrow__stem" d="M1 6h8"/><path class="m-arrow__head" d="M4.5 2.5 8 6l-3.5 3.5"/></svg></a>
+    </div>
+    <div class="closing__links">
+      <div class="grid">
+        <div class="span-6 stack-4">
+          <a class="nav__logo" href="#top"><span class="mark" data-mark="dots" aria-hidden="true"></span>Code Kingdoms</a>
+          <p class="footer__lede">Un juego pixel art para aprender Java y AWS CLI.</p>
+        </div>
+        <div class="span-2 footer__col"><h3>Juego</h3><ul><li><a href="#mapa">El mapa</a></li><li><a href="#pasos">Cómo se juega</a></li></ul></div>
+        <div class="span-2 footer__col"><h3>Reinos</h3><ul><li><a href="#reinos">Java y Nube</a></li><li><a href="#leo">Leo</a></li></ul></div>
+        <div class="span-2 footer__col"><h3>Proyecto</h3><ul><li><a href="https://github.com/Leoglez10/code-kingdoms">Código en GitHub</a></li></ul></div>
+      </div>
+      <div class="footer__legal">
+        <span>&copy; 2026 Code Kingdoms</span>
+        <div class="socials"></div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<nav class="actionbar" aria-label="Acciones rápidas">
+  <a class="btn btn--primary" href="play/">Jugar gratis</a>
+</nav>
+
+<script type="module" src="assets/system.js"></script>
+<script type="module" src="assets/motion/motion.js"></script>
+<script type="module" src="assets/layout/layout.js"></script>
+</body>
+</html>
