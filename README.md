@@ -2,6 +2,8 @@
 
 A 2D pixel-art game for learning programming languages and the cloud. Start on an overworld of castles, pick a kingdom (Java, Cloud…), then a world, and work through it part by part (1-1, 1-2, 1-3) by solving short coding challenges.
 
+**Play it:** https://leoglez10.github.io/code-kingdoms/ (game: https://leoglez10.github.io/code-kingdoms/play/)
+
 ## Screenshots
 
 <img src="docs/screenshots/desktop.png" alt="Code Kingdoms — desktop" width="100%">
@@ -30,6 +32,7 @@ A 2D pixel-art game for learning programming languages and the cloud. Start on a
 bun install
 bun run dev     # open the URL Vite prints
 bun run test    # run the engine and game-logic tests
+bun run build:site  # landing page + game in _site/ (game under /play/)
 ```
 
 ## Stack
@@ -38,7 +41,7 @@ bun run test    # run the engine and game-logic tests
 |-------|----------|
 | UI | React + Vite, as a static single-page app (no server) |
 | Saving | `localStorage` behind a single save module, so it can move to a backend later |
-| Hosting | Any static host (Cloudflare Pages, Vercel, Netlify) |
+| Hosting | GitHub Pages via `.github/workflows/pages.yml`: the landing page (`landing/`) at the root, the game at `/play/` |
 | Runtime | Bun (install and scripts) |
 | Tests | Vitest, run with `bun run test` |
 
@@ -53,7 +56,7 @@ Each kingdom is one module in `src/worlds/` that provides its levels, how they g
 - [x] Achievements
 - [x] Character customization
 - [x] Java with 3 worlds (30 levels)
-- [ ] Deploy to a static host
+- [x] Deploy to GitHub Pages
 - [ ] More worlds for Cloud
 - [ ] Optional accounts and cloud saves to play with friends
 

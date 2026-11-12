@@ -2,6 +2,8 @@
 
 Un juego 2D en pixel art para aprender lenguajes de programación y la nube. Empiezas en un mapa de castillos, eliges un reino (Java, Cloud…), luego un mundo, y avanzas parte por parte (1-1, 1-2, 1-3) resolviendo retos cortos de código.
 
+**Juega aquí:** https://leoglez10.github.io/code-kingdoms/ (juego: https://leoglez10.github.io/code-kingdoms/play/)
+
 ## Capturas
 
 <img src="docs/screenshots/desktop.png" alt="Code Kingdoms — escritorio" width="100%">
@@ -30,6 +32,7 @@ Un juego 2D en pixel art para aprender lenguajes de programación y la nube. Emp
 bun install
 bun run dev     # abre la URL que muestra Vite
 bun run test    # corre los tests de los motores y de la lógica del juego
+bun run build:site  # landing + juego en _site/ (el juego en /play/)
 ```
 
 ## Tecnología
@@ -38,7 +41,7 @@ bun run test    # corre los tests de los motores y de la lógica del juego
 |------|----------|
 | Interfaz | React + Vite, como app estática de una sola página (sin servidor) |
 | Guardado | `localStorage` detrás de un único módulo de guardado, para moverlo a un backend después |
-| Hosting | Cualquier hosting estático (Cloudflare Pages, Vercel, Netlify) |
+| Hosting | GitHub Pages con `.github/workflows/pages.yml`: la landing (`landing/`) en la raíz y el juego en `/play/` |
 | Runtime | Bun (instalación y scripts) |
 | Tests | Vitest, con `bun run test` |
 
@@ -53,6 +56,6 @@ Cada reino es un módulo en `src/worlds/` que trae sus niveles, cómo se agrupan
 - [x] Logros
 - [x] Personalización del personaje
 - [x] Java con 3 mundos (30 niveles)
-- [ ] Publicar en un hosting estático
+- [x] Publicar en GitHub Pages
 - [ ] Más mundos para Cloud
 - [ ] Cuentas opcionales y guardado en la nube para jugar con amigos

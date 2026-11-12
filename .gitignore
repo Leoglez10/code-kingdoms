@@ -3,3 +3,7 @@ dist/
 .DS_Store
 coverage/
 .atl/
+_site/
+landing/.taste-skill/
+landing/shots/
+.taste-skill/
